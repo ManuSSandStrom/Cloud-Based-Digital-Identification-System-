@@ -178,7 +178,7 @@ The backend creates a default admin on startup using:
   - `build command=npm run build`
   - `publish=frontend/dist`
 - Add this environment variable in Netlify:
-  - `VITE_API_URL=https://your-render-backend.onrender.com/api`
+  - `VITE_API_URL=https://cloud-based-digital-identification-system.onrender.com/api`
 - After Netlify gives you a deployed frontend URL, set that same URL as `CLIENT_URL` in Render
 
 ## Verification Notes
