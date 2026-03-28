@@ -67,6 +67,8 @@ Important backend variables:
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 - `ADMIN_EMAIL`, `ADMIN_PASSWORD`
 
+Keep the real admin password only in Render or your private `backend/.env`. Do not commit live admin credentials to GitHub.
+
 ## Install
 
 ```bash
