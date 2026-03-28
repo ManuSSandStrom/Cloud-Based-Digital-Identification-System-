@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import { ORG_STATUSES } from '../utils/constants.js';
 
+const bcryptSaltRounds = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
+
 const loginActivitySchema = new mongoose.Schema(
   {
     ip: String,
@@ -67,7 +69,7 @@ const organizationSchema = new mongoose.Schema(
 
 organizationSchema.pre('save', async function organizationPreSave(next) {
   if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 12);
+    this.password = await bcrypt.hash(this.password, bcryptSaltRounds);
   }
 
   next();

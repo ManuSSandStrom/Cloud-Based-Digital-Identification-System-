@@ -61,6 +61,7 @@ Important backend variables:
 
 - `MONGODB_URI`
 - `JWT_SECRET`
+- `BCRYPT_SALT_ROUNDS`
 - `FIELD_ENCRYPTION_KEY`
 - `CLIENT_URL`
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`

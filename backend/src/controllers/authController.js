@@ -16,6 +16,14 @@ import {
 import { createOtp, verifyOtp } from '../services/otpService.js';
 import { logActivity } from '../services/activityService.js';
 
+const runInBackground = (task, label) => {
+  Promise.resolve()
+    .then(task)
+    .catch((error) => {
+      console.error(`Background auth task failed: ${label}`, error);
+    });
+};
+
 const getIpAddress = (req) =>
   req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
   req.socket.remoteAddress ||
@@ -96,31 +104,35 @@ export const registerUser = asyncHandler(async (req, res) => {
     idIssuedAt: new Date(),
   });
 
-  await Promise.allSettled([
-    sendEmail({
-      to: user.email,
-      subject: 'Registration Successful',
-      html: registrationEmailTemplate({ name: user.name, uniqueID }),
-    }),
-    sendEmail({
-      to: user.email,
-      subject: 'Your Digital ID Is Ready',
-      html: idGeneratedTemplate({ name: user.name, uniqueID }),
-    }),
-    logActivity({
-      actorId: user._id,
-      actorType: ACCOUNT_TYPES.USER,
-      action: 'user_registered',
-      ip: getIpAddress(req),
-      metadata: { uniqueID, role },
-    }),
-  ]);
-
   res.status(201).json({
     success: true,
     message: 'User registered successfully.',
     data: buildAuthResponse(user, ACCOUNT_TYPES.USER),
   });
+
+  runInBackground(
+    () =>
+      Promise.allSettled([
+        sendEmail({
+          to: user.email,
+          subject: 'Registration Successful',
+          html: registrationEmailTemplate({ name: user.name, uniqueID }),
+        }),
+        sendEmail({
+          to: user.email,
+          subject: 'Your Digital ID Is Ready',
+          html: idGeneratedTemplate({ name: user.name, uniqueID }),
+        }),
+        logActivity({
+          actorId: user._id,
+          actorType: ACCOUNT_TYPES.USER,
+          action: 'user_registered',
+          ip: getIpAddress(req),
+          metadata: { uniqueID, role },
+        }),
+      ]),
+    'registerUser notifications',
+  );
 });
 
 export const login = asyncHandler(async (req, res) => {
@@ -136,32 +148,35 @@ export const login = asyncHandler(async (req, res) => {
     throw new AppError('Invalid login credentials.', 401);
   }
 
-  await recordLoginActivity(account, req);
-
-  await Promise.allSettled([
-    sendEmail({
-      to: account.email,
-      subject: 'Login Alert',
-      html: loginAlertTemplate({
-        name: account.name,
-        ip: getIpAddress(req),
-        loggedInAt: new Date(),
-      }),
-    }),
-    logActivity({
-      actorId: account._id,
-      actorType: accountType,
-      action: 'account_logged_in',
-      ip: getIpAddress(req),
-      metadata: { email: account.email },
-    }),
-  ]);
-
   res.json({
     success: true,
     message: 'Login successful.',
     data: buildAuthResponse(account, accountType),
   });
+
+  runInBackground(
+    () =>
+      Promise.allSettled([
+        recordLoginActivity(account, req),
+        sendEmail({
+          to: account.email,
+          subject: 'Login Alert',
+          html: loginAlertTemplate({
+            name: account.name,
+            ip: getIpAddress(req),
+            loggedInAt: new Date(),
+          }),
+        }),
+        logActivity({
+          actorId: account._id,
+          actorType: accountType,
+          action: 'account_logged_in',
+          ip: getIpAddress(req),
+          metadata: { email: account.email },
+        }),
+      ]),
+    'login activity',
+  );
 });
 
 export const forgotPassword = asyncHandler(async (req, res) => {
@@ -183,20 +198,24 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     purpose: OTP_PURPOSES.PASSWORD_RESET,
   });
 
-  await sendEmail({
-    to: account.email,
-    subject: 'Reset Password OTP',
-    html: otpEmailTemplate({
-      name: account.name,
-      otp,
-      purpose: 'password reset',
-    }),
-  });
-
   res.json({
     success: true,
     message: 'OTP sent to your email.',
   });
+
+  runInBackground(
+    () =>
+      sendEmail({
+        to: account.email,
+        subject: 'Reset Password OTP',
+        html: otpEmailTemplate({
+          name: account.name,
+          otp,
+          purpose: 'password reset',
+        }),
+      }),
+    'forgotPassword email',
+  );
 });
 
 export const resetPassword = asyncHandler(async (req, res) => {

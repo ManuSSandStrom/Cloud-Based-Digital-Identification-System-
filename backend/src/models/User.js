@@ -4,6 +4,8 @@ import validator from 'validator';
 import { encryptValue, decryptValue } from '../utils/crypto.js';
 import { USER_ROLES } from '../utils/constants.js';
 
+const bcryptSaltRounds = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
+
 const uploadSchema = new mongoose.Schema(
   {
     name: String,
@@ -96,7 +98,7 @@ const userSchema = new mongoose.Schema(
 
 userSchema.pre('save', async function userPreSave(next) {
   if (this.isModified('password')) {
-    this.password = await bcrypt.hash(this.password, 12);
+    this.password = await bcrypt.hash(this.password, bcryptSaltRounds);
   }
 
   next();
