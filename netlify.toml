@@ -3,6 +3,9 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  VITE_API_URL = "https://cloud-based-digital-identification-system.onrender.com/api"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

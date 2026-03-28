@@ -1,9 +1,17 @@
 import axios from 'axios';
 
+const normalizeApiBaseUrl = (value) => {
+  const trimmedValue = (value || '').trim().replace(/\/+$/, '');
+
+  if (!trimmedValue) {
+    return 'https://cloud-based-digital-identification-system.onrender.com/api';
+  }
+
+  return trimmedValue.endsWith('/api') ? trimmedValue : `${trimmedValue}/api`;
+};
+
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL ||
-    'https://cloud-based-digital-identification-system.onrender.com/api',
+  baseURL: normalizeApiBaseUrl(import.meta.env.VITE_API_URL),
 });
 
 api.interceptors.request.use((config) => {

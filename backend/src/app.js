@@ -16,14 +16,22 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
-  .split(',')
-  .map((origin) => origin.trim());
+const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, '');
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://cloud-based-digital-identification.netlify.app',
+  ...(process.env.CLIENT_URL || '')
+    .split(',')
+    .filter(Boolean),
+]
+  .map(normalizeOrigin)
+  .filter(Boolean);
 
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(normalizeOrigin(origin))) {
         return callback(null, true);
       }
 
