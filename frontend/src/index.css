@@ -51,5 +51,35 @@
 
   .input-base {
     @apply w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none ring-0 transition focus:border-brand-500 focus:shadow-[0_0_0_4px_rgba(17,179,135,0.12)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-50;
+    caret-color: #0f172a;
+  }
+
+  .input-base::placeholder {
+    color: #64748b;
+  }
+
+  html.dark .input-base {
+    caret-color: #f8fafc;
+  }
+
+  html.dark .input-base::placeholder {
+    color: #94a3b8;
+  }
+
+  .input-base:-webkit-autofill,
+  .input-base:-webkit-autofill:hover,
+  .input-base:-webkit-autofill:focus,
+  .input-base:-webkit-autofill:active {
+    -webkit-text-fill-color: #0f172a;
+    transition: background-color 9999s ease-in-out 0s;
+    box-shadow: 0 0 0 1000px #ffffff inset;
+  }
+
+  html.dark .input-base:-webkit-autofill,
+  html.dark .input-base:-webkit-autofill:hover,
+  html.dark .input-base:-webkit-autofill:focus,
+  html.dark .input-base:-webkit-autofill:active {
+    -webkit-text-fill-color: #f8fafc;
+    box-shadow: 0 0 0 1000px #020617 inset;
   }
 }
