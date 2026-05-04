@@ -14,13 +14,19 @@ export default function AdminDashboardPage() {
   const dispatch = useDispatch();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [busyOrgId, setBusyOrgId] = useState(null);
 
   const fetchDashboard = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await adminService.getDashboard();
       setDashboard(response.data);
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Failed to load admin dashboard.';
+      setError(message);
+      dispatch(showToast({ type: 'error', message }));
     } finally {
       setLoading(false);
     }
@@ -39,11 +45,11 @@ export default function AdminDashboardPage() {
       });
       dispatch(showToast({ type: 'success', message: response.message }));
       await fetchDashboard();
-    } catch (error) {
+    } catch (err) {
       dispatch(
         showToast({
           type: 'error',
-          message: error.response?.data?.message || 'Unable to update organization status.',
+          message: err.response?.data?.message || 'Unable to update organization status.',
         }),
       );
     } finally {
@@ -53,6 +59,20 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return <Loader label="Loading admin dashboard..." />;
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">
+          Unable to load dashboard
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {error || 'An unexpected error occurred.'}
+        </p>
+        <Button onClick={fetchDashboard}>Retry</Button>
+      </div>
+    );
   }
 
   return (

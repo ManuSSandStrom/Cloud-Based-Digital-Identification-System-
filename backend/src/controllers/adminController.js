@@ -18,14 +18,18 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
 
   const [users, organizations, verificationRecords, allVerificationRecords, recentLogs] = await Promise.all([
     User.find().sort({ createdAt: -1 }),
-    Organization.find().sort({ createdAt: -1 }),
+    Organization.find().sort({ createdAt: -1 }).lean(),
     VerificationLog.find()
       .sort({ timestamp: -1 })
       .limit(8)
-      .populate('userId organizationId', 'name uniqueID email'),
-    VerificationLog.find().sort({ timestamp: -1 }),
-    ActivityLog.find().sort({ createdAt: -1 }).limit(12),
+      .populate('userId', 'name uniqueID email')
+      .populate('organizationId', 'name email')
+      .lean(),
+    VerificationLog.find().sort({ timestamp: -1 }).lean(),
+    ActivityLog.find().sort({ createdAt: -1 }).limit(12).lean(),
   ]);
+
+  const totalVerifications = await VerificationLog.countDocuments();
 
   res.json({
     success: true,
@@ -38,7 +42,7 @@ export const getAdminDashboard = asyncHandler(async (req, res) => {
         totalOrganizations: organizations.length,
         pendingOrganizations: organizations.filter((org) => org.status === 'pending').length,
         approvedOrganizations: organizations.filter((org) => org.status === 'approved').length,
-        totalVerifications: await VerificationLog.countDocuments(),
+        totalVerifications,
       },
       organizations,
       recentVerifications: verificationRecords,

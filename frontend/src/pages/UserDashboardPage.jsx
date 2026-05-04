@@ -16,6 +16,7 @@ export default function UserDashboardPage() {
   const dispatch = useDispatch();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -27,6 +28,7 @@ export default function UserDashboardPage() {
 
   const fetchDashboard = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await userService.getDashboard();
       setDashboard(response.data);
@@ -36,6 +38,10 @@ export default function UserDashboardPage() {
         dob: response.data.profile.dob || '',
         address: response.data.profile.address || '',
       }));
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Failed to load user dashboard.';
+      setError(message);
+      dispatch(showToast({ type: 'error', message }));
     } finally {
       setLoading(false);
     }
@@ -75,11 +81,11 @@ export default function UserDashboardPage() {
       dispatch(updateUser(response.data));
       dispatch(showToast({ type: 'success', message: response.message }));
       await fetchDashboard();
-    } catch (error) {
+    } catch (err) {
       dispatch(
         showToast({
           type: 'error',
-          message: error.response?.data?.message || 'Unable to update profile.',
+          message: err.response?.data?.message || 'Unable to update profile.',
         }),
       );
     } finally {
@@ -89,6 +95,20 @@ export default function UserDashboardPage() {
 
   if (loading) {
     return <Loader label="Loading user dashboard..." />;
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">
+          Unable to load dashboard
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {error || 'An unexpected error occurred.'}
+        </p>
+        <Button onClick={fetchDashboard}>Retry</Button>
+      </div>
+    );
   }
 
   return (

@@ -15,6 +15,7 @@ export default function OrganizationDashboardPage() {
   const dispatch = useDispatch();
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [uniqueId, setUniqueId] = useState('');
   const [otp, setOtp] = useState('');
   const [result, setResult] = useState(null);
@@ -22,9 +23,14 @@ export default function OrganizationDashboardPage() {
 
   const fetchDashboard = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await orgService.getDashboard();
       setDashboard(response.data);
+    } catch (err) {
+      const message = err.response?.data?.message || err.message || 'Failed to load organization dashboard.';
+      setError(message);
+      dispatch(showToast({ type: 'error', message }));
     } finally {
       setLoading(false);
     }
@@ -46,11 +52,11 @@ export default function OrganizationDashboardPage() {
         setUniqueId(normalizedId);
         dispatch(showToast({ type: 'success', message: response.message }));
         await fetchDashboard();
-      } catch (error) {
+      } catch (err) {
         dispatch(
           showToast({
             type: 'error',
-            message: error.response?.data?.message || 'Verification failed.',
+            message: err.response?.data?.message || 'Verification failed.',
           }),
         );
       } finally {
@@ -65,11 +71,11 @@ export default function OrganizationDashboardPage() {
     try {
       const response = await orgService.requestOtp(uniqueId);
       dispatch(showToast({ type: 'success', message: response.message }));
-    } catch (error) {
+    } catch (err) {
       dispatch(
         showToast({
           type: 'error',
-          message: error.response?.data?.message || 'Unable to send OTP.',
+          message: err.response?.data?.message || 'Unable to send OTP.',
         }),
       );
     } finally {
@@ -84,11 +90,11 @@ export default function OrganizationDashboardPage() {
       setResult(response.data);
       dispatch(showToast({ type: 'success', message: response.message }));
       await fetchDashboard();
-    } catch (error) {
+    } catch (err) {
       dispatch(
         showToast({
           type: 'error',
-          message: error.response?.data?.message || 'OTP verification failed.',
+          message: err.response?.data?.message || 'OTP verification failed.',
         }),
       );
     } finally {
@@ -98,6 +104,20 @@ export default function OrganizationDashboardPage() {
 
   if (loading) {
     return <Loader label="Loading organization dashboard..." />;
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
+        <p className="text-lg font-semibold text-slate-900 dark:text-white">
+          Unable to load dashboard
+        </p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {error || 'An unexpected error occurred.'}
+        </p>
+        <Button onClick={fetchDashboard}>Retry</Button>
+      </div>
+    );
   }
 
   return (
