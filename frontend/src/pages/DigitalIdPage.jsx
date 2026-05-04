@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Button from '../components/common/Button.jsx';
 import DigitalIdCard from '../components/common/DigitalIdCard.jsx';
 import SectionCard from '../components/common/SectionCard.jsx';
 import { userService } from '../services/userService.js';
+import { showToast } from '../features/ui/uiSlice.js';
 
 export default function DigitalIdPage() {
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -20,6 +22,14 @@ export default function DigitalIdPage() {
       link.download = `${user.uniqueID}.pdf`;
       link.click();
       window.URL.revokeObjectURL(url);
+    } catch (error) {
+      dispatch(
+        showToast({
+          type: 'error',
+          message: 'Failed to generate or download Digital ID PDF.',
+        }),
+      );
+      console.error('PDF download error:', error);
     } finally {
       setDownloading(false);
     }

@@ -13,18 +13,23 @@ const loadImageBuffer = async (url) => {
     return null;
   }
 
-  if (url.startsWith('data:image')) {
-    return Buffer.from(url.split(',')[1], 'base64');
-  }
+  try {
+    if (url.startsWith('data:image')) {
+      return Buffer.from(url.split(',')[1], 'base64');
+    }
 
-  if (url.startsWith('/uploads/')) {
-    const localPath = path.join(backendRoot, url);
-    return fs.readFile(localPath);
-  }
+    if (url.startsWith('/uploads/')) {
+      const localPath = path.join(backendRoot, url);
+      return await fs.readFile(localPath);
+    }
 
-  if (url.startsWith('http')) {
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
-    return Buffer.from(response.data);
+    if (url.startsWith('http')) {
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data);
+    }
+  } catch (error) {
+    console.error(`Failed to load image for PDF: ${url}`, error.message);
+    return null;
   }
 
   return null;
