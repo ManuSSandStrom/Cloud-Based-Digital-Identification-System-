@@ -60,12 +60,12 @@ export default function LandingPage() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/register">
-                <Button className="bg-white text-ink hover:bg-slate-100">
+                <Button variant="hero-light">
                   Create account <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link to="/verify/DID-2026-DEMO">
-                <Button variant="ghost" className="border border-white/20 bg-white/10 text-white hover:bg-white/15">
+                <Button variant="hero-outline">
                   Open verification flow
                 </Button>
               </Link>
