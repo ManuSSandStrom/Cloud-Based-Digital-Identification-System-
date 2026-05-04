@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const AUTH_STORAGE_KEY = 'digital-id-auth';
+
 const normalizeApiBaseUrl = (value) => {
   const trimmedValue = (value || '').trim().replace(/\/+$/, '');
 
@@ -15,7 +17,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const savedState = localStorage.getItem('digital-id-auth');
+  const savedState = localStorage.getItem(AUTH_STORAGE_KEY);
 
   if (savedState) {
     const { token } = JSON.parse(savedState);
@@ -26,5 +28,20 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

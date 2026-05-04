@@ -13,7 +13,16 @@ export const protect =
     }
 
     const token = authHeader.split(' ')[1];
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
+
+    let payload;
+    try {
+      payload = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (jwtError) {
+      if (jwtError.name === 'TokenExpiredError') {
+        throw new AppError('Session expired. Please log in again.', 401);
+      }
+      throw new AppError('Invalid authentication token.', 401);
+    }
 
     if (
       allowedAccountTypes.length &&
